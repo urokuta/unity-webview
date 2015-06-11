@@ -40,6 +40,7 @@ import android.widget.FrameLayout;
 import android.webkit.JavascriptInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.graphics.Color;
 
 class WebViewPluginInterface
 {
@@ -76,6 +77,8 @@ public class WebViewPlugin
 			mWebView.setVisibility(View.GONE);
 			mWebView.setFocusable(true);
 			mWebView.setFocusableInTouchMode(true);
+      mWebView.setBackgroundColor(Color.TRANSPARENT);
+      mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
 			if (layout == null) {
 				layout = new FrameLayout(a);
