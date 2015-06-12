@@ -94,7 +94,9 @@ public class WebViewPlugin
 
 			mWebView.setWebChromeClient(new WebChromeClient() {
 				public boolean onConsoleMessage(android.webkit.ConsoleMessage cm) {
-					Log.d("Webview", cm.message());
+          if (cm.message() != null) {
+            Log.d("Webview", cm.message());
+          }
 					return true;
 				}
 			});
