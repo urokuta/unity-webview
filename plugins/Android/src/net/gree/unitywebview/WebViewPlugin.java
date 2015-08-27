@@ -58,9 +58,27 @@ class WebViewPluginInterface
 	}
 }
 
+class CustomFrameLayout extends FrameLayout {
+  public CustomFrameLayout(Context context) {
+    super(context);
+  }
+  private boolean isIntercept = false;
+  @Override
+  public boolean onInterceptTouchEvent(MotionEvent ev) {
+    if (isIntercept) {
+      return true;
+    } else {
+      return super.onInterceptTouchEvent(ev);
+    }
+  }
+  public void setIsIntercept(boolean isIntercept) {
+    this.isIntercept = isIntercept;
+  }
+}
+
 public class WebViewPlugin
 {
-	private static FrameLayout layout = null;
+	private static CustomFrameLayout layout = null;
 	private WebView mWebView;
 	private long mDownTime;
 
@@ -78,19 +96,18 @@ public class WebViewPlugin
 			mWebView.setFocusable(true);
 			mWebView.setFocusableInTouchMode(true);
       mWebView.setBackgroundColor(Color.TRANSPARENT);
-      mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
 			if (layout == null) {
-				layout = new FrameLayout(a);
-				a.addContentView(layout, new LayoutParams(
+				layout = new CustomFrameLayout(a);
+				a.addContentView((FrameLayout)layout, new LayoutParams(
 					LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 				layout.setFocusable(true);
 				layout.setFocusableInTouchMode(true);
 			}
 
-			layout.addView(mWebView, new FrameLayout.LayoutParams(
-				LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT,
-				Gravity.NO_GRAVITY));
+      layout.addView(mWebView, new FrameLayout.LayoutParams(
+        LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT,
+        Gravity.NO_GRAVITY));
 
 			mWebView.setWebChromeClient(new WebChromeClient() {
 				public boolean onConsoleMessage(android.webkit.ConsoleMessage cm) {
@@ -216,4 +233,28 @@ public class WebViewPlugin
 
 		}});
 	}
+  public void SetUserInteraction(final boolean aIsEnable)
+  {
+		final Activity a = UnityPlayer.currentActivity;
+		a.runOnUiThread(new Runnable() {public void run() {
+      Log.d("start runOnUiThread SetUserInteraction: ", String.valueOf(aIsEnable));
+      mWebView.setFocusable(aIsEnable);
+      mWebView.setFocusableInTouchMode(aIsEnable);
+      layout.setFocusable(aIsEnable);
+      layout.setFocusableInTouchMode(aIsEnable);
+      // WebViewではなぜかonTouch return falseが効かないので、layout側を拡張して、interceptする
+      layout.setIsIntercept(!aIsEnable);
+      if (aIsEnable) {
+        layout.setOnTouchListener(null);
+      } else {
+        layout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Log.d("mWebView parent layout onTouch: true, MotionEvent: ", event.toString());
+                return false;
+            }
+        });
+      }
+		}});
+  }
 }
